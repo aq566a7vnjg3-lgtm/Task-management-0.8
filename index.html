@@ -3001,6 +3001,54 @@ const $ = (id)=>document.getElementById(id);
     updateGenerateButtons();
   }
 
+
+  const COMPUTED_FIELD_IDS = new Set(['factoryOutRefDate','earliestRegDate','earliestDeliveryDate','hqArrivalDate','regPlannedDate','dcDocsDueDate','loanDueDate','paymentGap']);
+
+  function getFormControls(){
+    if(!els.form) return [];
+    return [...els.form.querySelectorAll('input[id], select[id], textarea[id]')];
+  }
+
+  function captureFormSnapshot(){
+    if(!activeCase) return;
+    const snap = {};
+    getFormControls().forEach(el=>{
+      if(!el.id) return;
+      if(el.type === 'checkbox'){
+        snap[el.id] = !!el.checked;
+      }else{
+        snap[el.id] = el.value ?? '';
+      }
+    });
+    activeCase.formSnapshot = snap;
+  }
+
+  function restoreResidualFormSnapshot(caseObj){
+    if(!caseObj || !caseObj.formSnapshot) return;
+    getFormControls().forEach(el=>{
+      const id = el.id;
+      if(!id || !(id in caseObj.formSnapshot) || COMPUTED_FIELD_IDS.has(id)) return;
+      const saved = caseObj.formSnapshot[id];
+      if(el.type === 'checkbox'){
+        if(!el.checked && !!saved) el.checked = true;
+      }else if((el.value ?? '') === '' && saved !== undefined && saved !== null && saved !== ''){
+        el.value = saved;
+      }
+    });
+  }
+
+  function showSaveStatus(message, isError=false){
+    if(!els.saveStatus) return;
+    els.saveStatus.textContent = message || '';
+    els.saveStatus.style.color = isError ? 'var(--danger)' : 'var(--ok)';
+    if(showSaveStatus._timer) clearTimeout(showSaveStatus._timer);
+    if(message){
+      showSaveStatus._timer = setTimeout(()=>{
+        if(els.saveStatus) els.saveStatus.textContent = '';
+      }, 2600);
+    }
+  }
+
   function fillForm(){
     if(!activeCase){
       els.form.style.display='none';
@@ -3107,6 +3155,7 @@ const $ = (id)=>document.getElementById(id);
     if(els.replaceContent) els.replaceContent.value = activeCase.replaceContent||'';
     els.memo.value = activeCase.memo||'';
 
+    restoreResidualFormSnapshot(activeCase);
     setRegMethodRules();
     renderTasks();
     renderKpis();
@@ -3214,27 +3263,18 @@ const $ = (id)=>document.getElementById(id);
     activeCase.replaceContent = els.replaceContent?.value || '';
     activeCase.memo = els.memo?.value || '';
 
+    activeCase.contractType = els.contractType?.value || activeCase.contractType || '';
     syncLoanDueDateFromCurrent();
-  }
-
-  function showSaveStatus(message, isError=false){
-    if(!els.saveStatus) return;
-    els.saveStatus.textContent = message || '';
-    els.saveStatus.style.color = isError ? 'var(--danger)' : 'var(--ok)';
-    if(showSaveStatus._timer) clearTimeout(showSaveStatus._timer);
-    if(message){
-      showSaveStatus._timer = setTimeout(()=>{
-        if(els.saveStatus) els.saveStatus.textContent = '';
-      }, 2400);
-    }
+    captureFormSnapshot();
   }
 
   async function saveAllFieldsNow(showMessage=true){
     if(!activeCase) return;
     syncActiveCaseFromForm();
     try{
+      const savedCount = activeCase.formSnapshot ? Object.keys(activeCase.formSnapshot).length : 0;
       await persist();
-      if(showMessage) showSaveStatus('保存しました');
+      if(showMessage) showSaveStatus(`保存しました（${savedCount}項目）`);
     }catch(err){
       console.error(err);
       if(showMessage) showSaveStatus('保存に失敗しました', true);
@@ -3247,6 +3287,7 @@ const $ = (id)=>document.getElementById(id);
     activeCase = await saveCase(activeCase);
     // refresh list state
     cases = await loadAllCases();
+    activeCase = cases.find(c=>c.id===activeCase.id) || activeCase;
     renderList();
     renderKpis();
     renderReplaceFlag();
@@ -3309,14 +3350,12 @@ const $ = (id)=>document.getElementById(id);
       els.btnGenerate.disabled = true;
       els.btnRecalc.disabled = true;
       els.btnDelete.disabled = true;
-      if(els.btnSave) els.btnSave.disabled = true;
       if(els.btnReplaceFlag) els.btnReplaceFlag.disabled = true;
       els.missingHint.textContent='';
       renderValidationPanel(null, null, els);
       return;
     }
     els.btnDelete.disabled=false;
-    if(els.btnSave) els.btnSave.disabled = false;
     if(els.btnReplaceFlag) els.btnReplaceFlag.disabled = false;
 
     const validation = getValidationState(activeCase);
@@ -3333,6 +3372,15 @@ const $ = (id)=>document.getElementById(id);
   }
 
   async function selectCase(id){
+    if(activeCase && activeCase.id !== id){
+      try{
+        syncActiveCaseFromForm();
+        await saveCase(activeCase);
+        cases = await loadAllCases();
+      }catch(err){
+        console.error('selectCase autosave failed', err);
+      }
+    }
     activeId = id;
     activeCase = cases.find(c=>c.id===id) || null;
     lastTopUndo = null;
@@ -3424,6 +3472,7 @@ const $ = (id)=>document.getElementById(id);
 
       tasks: [],
       derived: {},
+      formSnapshot: {},
     };
     c.tasks = TASK_DEFS.map(d=>({
       id: uuid(), key:d.key, title:d.title, optional:d.optional,
@@ -3487,7 +3536,6 @@ const $ = (id)=>document.getElementById(id);
   // buttons
   els.btnGenerate.onclick = ()=>doGenerate(true);
   els.btnRecalc.onclick = ()=>doGenerate(true);
-  els.btnSave.onclick = ()=>saveAllFieldsNow(true);
   els.btnDelete.onclick = doDelete;
   els.btnReplaceFlag.onclick = async ()=>{
     if(!activeCase) return;
