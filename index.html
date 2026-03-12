@@ -1977,29 +1977,27 @@ function calcHqArrivalFromSubmit(submitISO, settings){
 
 
 function calcHqSubmitFromRegDate(regISO, blankDays, settings){
-  // Reverse-calc HQ submit date (= arrival date) from registration date.
-  // "中◯日" definition B: there must be blankDays registration-business-days strictly BETWEEN submit/arrival and reg date.
+  // 登録日から便乗せ期限を逆算する。
+  // ルール:
+  // - 基準日は「登録日」
+  // - 登録方法がOSSなら中4日、書類代行なら中2日（blankDays）
+  // - 判定に使うのは本社便カレンダーのみ
+  // 例: 中2日 = 「便乗せ期限」と登録日の間に本社便稼働日が2日入る日
   if(!regISO || !blankDays) return null;
   const reg = parseISODate(regISO);
   if(!reg) return null;
 
-  // Find the N-th previous registration business day before reg date (excluding reg date)
   let d = addDays(reg, -1);
   let count = 0;
-  for(let i=0;i<370;i++){
-    if(isRegBusinessDay(d, settings)) count += 1;
-    if(count === blankDays) break;
+
+  for(let i=0; i<370; i++){
+    if(isHQWorkingDay(d, settings)) count += 1;
+    if(count === blankDays + 1){
+      return toISODate(d);
+    }
     d = addDays(d, -1);
   }
-  if(count !== blankDays) return null;
-  const nthPrev = new Date(d);
-
-  // Arrival/submit date is the previous registration business day before that N-th day
-  const arrivalCandidate = prevWorkingDay(addDays(nthPrev, -1), x=>isRegBusinessDay(x, settings));
-
-  // HQ submit must be a HQ working day; also require registration business day because arrival is same-day
-  const submit = prevWorkingDay(arrivalCandidate, x=>isHQWorkingDay(x, settings) && isRegBusinessDay(x, settings));
-  return toISODate(submit);
+  return null;
 }
 
 function calcDCDocsDue(deliveryISO, settings){
@@ -3065,7 +3063,7 @@ const $ = (id)=>document.getElementById(id);
     // loan
     els.contractType.value = activeCase.contractType||'';
     els.paymentStartMonth.value = activeCase.paymentStartMonth||'';
-    els.loanDueDate.value = activeCase.derived?.loanDueDate||'';
+    syncLoanDueDateFromCurrent();
     els.totalPaymentAmount.value = formatMoneyDisplay(activeCase.totalPaymentAmount||'');
     els.applicationFee.value = formatMoneyDisplay(activeCase.applicationFee||'');
     els.payment1.value = formatMoneyDisplay(activeCase.payment1||'');
@@ -3128,6 +3126,92 @@ const $ = (id)=>document.getElementById(id);
 
   let autoRecalcTimer = null;
   let autoRecalcRunning = false;
+
+  function syncLoanDueDateFromCurrent(){
+    if(!activeCase) return '';
+    const contractType = (els.contractType && els.contractType.value !== undefined) ? (els.contractType.value || '') : (activeCase.contractType || '');
+    const paymentStartMonth = (els.paymentStartMonth && els.paymentStartMonth.value !== undefined) ? (els.paymentStartMonth.value || '') : (activeCase.paymentStartMonth || '');
+    const loanDueISO = (isLoanLikeContractType(contractType) && paymentStartMonth) ? calcLoanDue(paymentStartMonth) : '';
+    activeCase.contractType = contractType;
+    activeCase.paymentStartMonth = paymentStartMonth;
+    activeCase.derived = activeCase.derived || {};
+    activeCase.derived.loanDueDate = loanDueISO;
+    if(els.loanDueDate) els.loanDueDate.value = loanDueISO || '';
+    return loanDueISO;
+  }
+
+  function syncActiveCaseFromForm(){
+    if(!activeCase) return;
+    activeCase.orderNo = els.orderNo?.value?.trim?.() || '';
+    activeCase.userName = els.userName?.value?.trim?.() || '';
+    activeCase.tcCode = els.tcCode?.value?.trim?.() || '';
+    activeCase.tel = els.tel?.value?.trim?.() || '';
+    activeCase.orderDate = els.orderDate?.value || '';
+    activeCase.carType = els.carType?.value || '';
+    activeCase.regMethod = els.regMethod?.value || '';
+    activeCase.hopeNoType = els.hopeNoType?.value || '';
+    activeCase.deliveryPlace = els.deliveryPlace?.value || '';
+    activeCase.mode = els.mode?.value || '';
+    activeCase.factoryOutDate = els.factoryOutDate?.value || '';
+    activeCase.deliveryDate = els.deliveryDate?.value || '';
+    activeCase.deliveryTime = els.deliveryTime?.value || '';
+    activeCase.frameNo = els.frameNo?.value || '';
+    activeCase.hopeNo = els.hopeNo?.value || '';
+    activeCase.noteNo = els.noteNo?.value || '';
+    activeCase.tradeIn = els.tradeIn?.value || '';
+
+    activeCase.hqSubmitDate = els.hqSubmitDate?.value || '';
+    activeCase.docsCollectDate = els.docsCollectDate?.value || '';
+    activeCase.garageRequired = els.garageRequired?.value || activeCase.garageRequired || '必要';
+    activeCase.regDate = els.regDate?.value || '';
+    activeCase.regDone = !!(els.regDone && els.regDone.checked);
+
+    activeCase.dcReserved = els.dcReserved?.value || '';
+    activeCase.dcReserveDate = els.dcReserveDate?.value || '';
+    activeCase.dcReserveSlot = els.dcReserveSlot?.value || '';
+    activeCase.dcReserveAt = (activeCase.dcReserveDate || activeCase.dcReserveSlot)
+      ? `${activeCase.dcReserveDate || ''} ${activeCase.dcReserveSlot || ''}`.trim()
+      : '';
+    activeCase.dcDocsSent = els.dcDocsSent?.value || '';
+    activeCase.dcDocsSentDate = els.dcDocsSentDate?.value || '';
+    activeCase.htcProcedureStatus = els.htcProcedureStatus?.value || '';
+    activeCase.tradeDocsBundleStatus = els.tradeDocsBundleStatus?.value || '';
+    activeCase.free1ScheduleAt = els.free1ScheduleAt?.value || '';
+
+    activeCase.totalPaymentAmount = normalizeMoneyInput(els.totalPaymentAmount?.value || activeCase.totalPaymentAmount || '');
+    activeCase.applicationFee = normalizeMoneyInput(els.applicationFee?.value || activeCase.applicationFee || '');
+    activeCase.payment1 = normalizeMoneyInput(els.payment1?.value || activeCase.payment1 || '');
+    activeCase.payment2 = normalizeMoneyInput(els.payment2?.value || activeCase.payment2 || '');
+    activeCase.paymentThanks1 = els.paymentThanks1?.value || '未';
+    activeCase.paymentThanks2 = els.paymentThanks2?.value || '未';
+    activeCase.allocatedAmount = normalizeMoneyInput(els.allocatedAmount?.value || activeCase.allocatedAmount || '');
+    activeCase.otherAmount = normalizeMoneyInput(els.otherAmount?.value || activeCase.otherAmount || '');
+    activeCase.paymentGap = String(updatePaymentGap());
+
+    activeCase.debtExists = els.debtExists?.value || '';
+    activeCase.tradeDisposition = els.tradeDisposition?.value || '';
+    activeCase.debtTransferRequested = els.debtTransferRequested?.value || '';
+    activeCase.ownershipReleaseRequested = els.ownershipReleaseRequested?.value || '';
+
+    activeCase.insuranceType = els.insuranceType?.value || '';
+    activeCase.insuranceContact = els.insuranceContact?.value || '';
+    activeCase.otherPolicyCollected = els.otherPolicyCollected?.value || '';
+    activeCase.insuranceProposalStatus = els.insuranceProposalStatus?.value || '';
+    activeCase.insuranceEstimateStatus = els.insuranceEstimateStatus?.value || '';
+    activeCase.vehicleReplacementStatus = els.vehicleReplacementStatus?.value || '';
+
+    activeCase.checkContractSubmit = els.checkContractSubmit?.value || '未';
+    activeCase.checkContractFixed = els.checkContractFixed?.value || '未';
+    activeCase.checkInsuranceReport = els.checkInsuranceReport?.value || '未';
+    activeCase.checkOrderLink = els.checkOrderLink?.value || '未';
+    activeCase.checkThankYouCall = els.checkThankYouCall?.value || '未';
+    activeCase.checkSalesControl = els.checkSalesControl?.value || '未';
+
+    activeCase.replaceContent = els.replaceContent?.value || '';
+    activeCase.memo = els.memo?.value || '';
+
+    syncLoanDueDateFromCurrent();
+  }
 
   async function persist(){
     if(!activeCase) return;
@@ -3437,6 +3521,8 @@ const $ = (id)=>document.getElementById(id);
       if(!activeCase) return;
       updatePaymentLabels();
       updateGenerateButtons();
+      syncLoanDueDateFromCurrent();
+      await persist();
       scheduleAutoRecalc();
     };
   }
@@ -3445,9 +3531,11 @@ const $ = (id)=>document.getElementById(id);
     const forceLoanMonthRecalc = async ()=>{
       if(!activeCase) return;
       activeCase.paymentStartMonth = els.paymentStartMonth.value || '';
+      syncLoanDueDateFromCurrent();
       await persist();
       await runAutoRecalc();
     };
+    els.paymentStartMonth.addEventListener('input', forceLoanMonthRecalc);
     els.paymentStartMonth.addEventListener('change', forceLoanMonthRecalc);
     els.paymentStartMonth.addEventListener('blur', forceLoanMonthRecalc);
   }
@@ -3505,6 +3593,30 @@ const $ = (id)=>document.getElementById(id);
 
   bindField(els.replaceContent,'replaceContent', v=>v);
   bindField(els.memo,'memo');
+
+  let formAutoSaveTimer = null;
+  const scheduleFormAutoSave = (withRecalc=true)=>{
+    if(formAutoSaveTimer) clearTimeout(formAutoSaveTimer);
+    formAutoSaveTimer = setTimeout(async ()=>{
+      if(!activeCase) return;
+      syncActiveCaseFromForm();
+      await persist();
+      if(withRecalc) scheduleAutoRecalc();
+    }, 120);
+  };
+
+  if(els.form){
+    const formAutoSaveHandler = (ev)=>{
+      const t = ev.target;
+      if(!t) return;
+      if(t.id === 'btnGenerate' || t.id === 'btnRecalc' || t.id === 'btnDelete') return;
+      if(t.disabled) return;
+      scheduleFormAutoSave(true);
+    };
+    els.form.addEventListener('input', formAutoSaveHandler, true);
+    els.form.addEventListener('change', formAutoSaveHandler, true);
+    els.form.addEventListener('focusout', formAutoSaveHandler, true);
+  }
 
 
   // --- Section always open (disable collapsing by clicking headings) ---
