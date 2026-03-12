@@ -1,6 +1,317 @@
 {
   "delivery_center_name": "レジェンディア納車センター",
   "entries": [
-    
+    {
+      "delivery_date": "2026-03-01",
+      "document_deadline": "2026-02-20"
+    },
+    {
+      "delivery_date": "2026-03-02",
+      "document_deadline": "2026-02-24"
+    },
+    {
+      "delivery_date": "2026-03-03",
+      "document_deadline": "2026-02-26"
+    },
+    {
+      "delivery_date": "2026-03-05",
+      "document_deadline": "2026-02-26"
+    },
+    {
+      "delivery_date": "2026-03-06",
+      "document_deadline": "2026-02-27"
+    },
+    {
+      "delivery_date": "2026-03-07",
+      "document_deadline": "2026-02-27"
+    },
+    {
+      "delivery_date": "2026-03-08",
+      "document_deadline": "2026-03-02"
+    },
+    {
+      "delivery_date": "2026-03-09",
+      "document_deadline": "2026-03-03"
+    },
+    {
+      "delivery_date": "2026-03-10",
+      "document_deadline": "2026-03-05"
+    },
+    {
+      "delivery_date": "2026-03-12",
+      "document_deadline": "2026-03-05"
+    },
+    {
+      "delivery_date": "2026-03-13",
+      "document_deadline": "2026-03-06"
+    },
+    {
+      "delivery_date": "2026-03-14",
+      "document_deadline": "2026-03-06"
+    },
+    {
+      "delivery_date": "2026-03-15",
+      "document_deadline": "2026-03-09"
+    },
+    {
+      "delivery_date": "2026-03-16",
+      "document_deadline": "2026-03-09"
+    },
+    {
+      "delivery_date": "2026-03-17",
+      "document_deadline": "2026-03-10"
+    },
+    {
+      "delivery_date": "2026-03-19",
+      "document_deadline": "2026-03-12"
+    },
+    {
+      "delivery_date": "2026-03-20",
+      "document_deadline": "2026-03-12"
+    },
+    {
+      "delivery_date": "2026-03-21",
+      "document_deadline": "2026-03-13"
+    },
+    {
+      "delivery_date": "2026-03-22",
+      "document_deadline": "2026-03-13"
+    },
+    {
+      "delivery_date": "2026-03-23",
+      "document_deadline": "2026-03-16"
+    },
+    {
+      "delivery_date": "2026-03-24",
+      "document_deadline": "2026-03-16"
+    },
+    {
+      "delivery_date": "2026-03-26",
+      "document_deadline": "2026-03-17"
+    },
+    {
+      "delivery_date": "2026-03-27",
+      "document_deadline": "2026-03-19"
+    },
+    {
+      "delivery_date": "2026-03-28",
+      "document_deadline": "2026-03-19"
+    },
+    {
+      "delivery_date": "2026-03-29",
+      "document_deadline": "2026-03-23"
+    },
+    {
+      "delivery_date": "2026-03-30",
+      "document_deadline": "2026-03-24"
+    },
+    {
+      "delivery_date": "2026-03-31",
+      "document_deadline": "2026-03-26"
+    },
+    {
+      "delivery_date": "2026-04-02",
+      "document_deadline": "2026-03-26"
+    },
+    {
+      "delivery_date": "2026-04-03",
+      "document_deadline": "2026-03-27"
+    },
+    {
+      "delivery_date": "2026-04-04",
+      "document_deadline": "2026-03-27"
+    },
+    {
+      "delivery_date": "2026-04-05",
+      "document_deadline": "2026-03-30"
+    },
+    {
+      "delivery_date": "2026-04-06",
+      "document_deadline": "2026-03-31"
+    },
+    {
+      "delivery_date": "2026-04-07",
+      "document_deadline": "2026-04-02"
+    },
+    {
+      "delivery_date": "2026-04-09",
+      "document_deadline": "2026-04-02"
+    },
+    {
+      "delivery_date": "2026-04-10",
+      "document_deadline": "2026-04-03"
+    },
+    {
+      "delivery_date": "2026-04-11",
+      "document_deadline": "2026-04-03"
+    },
+    {
+      "delivery_date": "2026-04-12",
+      "document_deadline": "2026-04-06"
+    },
+    {
+      "delivery_date": "2026-04-13",
+      "document_deadline": "2026-04-07"
+    },
+    {
+      "delivery_date": "2026-04-14",
+      "document_deadline": "2026-04-09"
+    },
+    {
+      "delivery_date": "2026-04-16",
+      "document_deadline": "2026-04-09"
+    },
+    {
+      "delivery_date": "2026-04-17",
+      "document_deadline": "2026-04-10"
+    },
+    {
+      "delivery_date": "2026-04-18",
+      "document_deadline": "2026-04-10"
+    },
+    {
+      "delivery_date": "2026-04-19",
+      "document_deadline": "2026-04-13"
+    },
+    {
+      "delivery_date": "2026-04-20",
+      "document_deadline": "2026-04-14"
+    },
+    {
+      "delivery_date": "2026-04-21",
+      "document_deadline": "2026-04-16"
+    },
+    {
+      "delivery_date": "2026-04-23",
+      "document_deadline": "2026-04-16"
+    },
+    {
+      "delivery_date": "2026-04-24",
+      "document_deadline": "2026-04-17"
+    },
+    {
+      "delivery_date": "2026-04-25",
+      "document_deadline": "2026-04-17"
+    },
+    {
+      "delivery_date": "2026-04-26",
+      "document_deadline": "2026-04-20"
+    },
+    {
+      "delivery_date": "2026-04-27",
+      "document_deadline": "2026-04-20"
+    },
+    {
+      "delivery_date": "2026-04-28",
+      "document_deadline": "2026-04-21"
+    },
+    {
+      "delivery_date": "2026-04-30",
+      "document_deadline": "2026-04-23"
+    },
+    {
+      "delivery_date": "2026-05-01",
+      "document_deadline": "2026-04-23"
+    },
+    {
+      "delivery_date": "2026-05-02",
+      "document_deadline": "2026-04-24"
+    },
+    {
+      "delivery_date": "2026-05-03",
+      "document_deadline": "2026-04-24"
+    },
+    {
+      "delivery_date": "2026-05-04",
+      "document_deadline": "2026-04-27"
+    },
+    {
+      "delivery_date": "2026-05-07",
+      "document_deadline": "2026-04-28"
+    },
+    {
+      "delivery_date": "2026-05-08",
+      "document_deadline": "2026-04-30"
+    },
+    {
+      "delivery_date": "2026-05-09",
+      "document_deadline": "2026-04-30"
+    },
+    {
+      "delivery_date": "2026-05-10",
+      "document_deadline": "2026-05-01"
+    },
+    {
+      "delivery_date": "2026-05-11",
+      "document_deadline": "2026-05-01"
+    },
+    {
+      "delivery_date": "2026-05-12",
+      "document_deadline": "2026-05-07"
+    },
+    {
+      "delivery_date": "2026-05-14",
+      "document_deadline": "2026-05-07"
+    },
+    {
+      "delivery_date": "2026-05-15",
+      "document_deadline": "2026-05-08"
+    },
+    {
+      "delivery_date": "2026-05-16",
+      "document_deadline": "2026-05-08"
+    },
+    {
+      "delivery_date": "2026-05-17",
+      "document_deadline": "2026-05-11"
+    },
+    {
+      "delivery_date": "2026-05-18",
+      "document_deadline": "2026-05-12"
+    },
+    {
+      "delivery_date": "2026-05-19",
+      "document_deadline": "2026-05-14"
+    },
+    {
+      "delivery_date": "2026-05-21",
+      "document_deadline": "2026-05-14"
+    },
+    {
+      "delivery_date": "2026-05-22",
+      "document_deadline": "2026-05-15"
+    },
+    {
+      "delivery_date": "2026-05-23",
+      "document_deadline": "2026-05-15"
+    },
+    {
+      "delivery_date": "2026-05-24",
+      "document_deadline": "2026-05-18"
+    },
+    {
+      "delivery_date": "2026-05-25",
+      "document_deadline": "2026-05-19"
+    },
+    {
+      "delivery_date": "2026-05-26",
+      "document_deadline": "2026-05-21"
+    },
+    {
+      "delivery_date": "2026-05-28",
+      "document_deadline": "2026-05-21"
+    },
+    {
+      "delivery_date": "2026-05-29",
+      "document_deadline": "2026-05-22"
+    },
+    {
+      "delivery_date": "2026-05-30",
+      "document_deadline": "2026-05-22"
+    },
+    {
+      "delivery_date": "2026-05-31",
+      "document_deadline": "2026-05-25"
+    }
   ]
 }
