@@ -432,7 +432,9 @@ header nav .btn.active{outline:2px solid rgba(37,99,235,.25);}
       <div class="top-actions">
         <button id="btnGenerate" class="btn" style="display:none;">期限を生成</button>
         <button id="btnRecalc" class="btn primary">期限を再計算</button>
+        <button id="btnSave" class="btn">保存</button>
         <button id="btnDelete" class="btn danger">削除</button>
+        <span class="small" id="saveStatus"></span>
         <span class="small" id="missingHint"></span>
         <button id="btnReplaceFlag" type="button" class="toggle-flag" aria-label="差替え要"></button>
       </div>
@@ -2450,8 +2452,10 @@ const $ = (id)=>document.getElementById(id);
 
     btnGenerate: $('btnGenerate'),
     btnRecalc: $('btnRecalc'),
+    btnSave: $('btnSave'),
     btnReplaceFlag: $('btnReplaceFlag'),
     btnDelete: $('btnDelete'),
+    saveStatus: $('saveStatus'),
     replaceContentSection: $('replaceContentSection'),
 
     // fields
@@ -3213,6 +3217,31 @@ const $ = (id)=>document.getElementById(id);
     syncLoanDueDateFromCurrent();
   }
 
+  function showSaveStatus(message, isError=false){
+    if(!els.saveStatus) return;
+    els.saveStatus.textContent = message || '';
+    els.saveStatus.style.color = isError ? 'var(--danger)' : 'var(--ok)';
+    if(showSaveStatus._timer) clearTimeout(showSaveStatus._timer);
+    if(message){
+      showSaveStatus._timer = setTimeout(()=>{
+        if(els.saveStatus) els.saveStatus.textContent = '';
+      }, 2400);
+    }
+  }
+
+  async function saveAllFieldsNow(showMessage=true){
+    if(!activeCase) return;
+    syncActiveCaseFromForm();
+    try{
+      await persist();
+      if(showMessage) showSaveStatus('保存しました');
+    }catch(err){
+      console.error(err);
+      if(showMessage) showSaveStatus('保存に失敗しました', true);
+      throw err;
+    }
+  }
+
   async function persist(){
     if(!activeCase) return;
     activeCase = await saveCase(activeCase);
@@ -3280,12 +3309,14 @@ const $ = (id)=>document.getElementById(id);
       els.btnGenerate.disabled = true;
       els.btnRecalc.disabled = true;
       els.btnDelete.disabled = true;
+      if(els.btnSave) els.btnSave.disabled = true;
       if(els.btnReplaceFlag) els.btnReplaceFlag.disabled = true;
       els.missingHint.textContent='';
       renderValidationPanel(null, null, els);
       return;
     }
     els.btnDelete.disabled=false;
+    if(els.btnSave) els.btnSave.disabled = false;
     if(els.btnReplaceFlag) els.btnReplaceFlag.disabled = false;
 
     const validation = getValidationState(activeCase);
@@ -3456,6 +3487,7 @@ const $ = (id)=>document.getElementById(id);
   // buttons
   els.btnGenerate.onclick = ()=>doGenerate(true);
   els.btnRecalc.onclick = ()=>doGenerate(true);
+  els.btnSave.onclick = ()=>saveAllFieldsNow(true);
   els.btnDelete.onclick = doDelete;
   els.btnReplaceFlag.onclick = async ()=>{
     if(!activeCase) return;
