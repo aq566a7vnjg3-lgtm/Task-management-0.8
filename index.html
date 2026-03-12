@@ -67,16 +67,6 @@ main{
   main{grid-template-columns:1fr; height:auto;}
 }
 
-@media (min-width: 981px) and (max-width: 1366px){
-  main{grid-template-columns:300px 1fr; gap:10px; padding:10px;}
-  .section .content{padding:0 10px 12px;}
-  .grid{gap:8px;}
-  .field{grid-column: span 5;}
-  .field.span4{grid-column: span 4;}
-  .field.span3{grid-column: span 3;}
-  .field.span12{grid-column: span 12;}
-}
-
 .panel{
   background:var(--card);
   border:1px solid var(--line);
@@ -98,8 +88,6 @@ main{
 .row.wrap{flex-wrap:wrap;}
 input[type="text"], input[type="number"], input[type="date"], input[type="month"], input[type="time"], select, textarea{
   width:100%;
-  max-width:100%;
-  min-width:0;
   border:1px solid var(--line);
   border-radius:10px;
   padding:9px 10px;
@@ -168,11 +156,10 @@ textarea{min-height:90px; resize:vertical;}
 .section .content{padding:0 12px 14px;}
 .grid{
   display:grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(12, 1fr);
   gap:10px;
 }
-.grid > *{min-width:0;}
-.field{grid-column: span 6; min-width:0;}
+.field{grid-column: span 6;}
 .field.span4{grid-column: span 4;}
 .field.span3{grid-column: span 3;}
 .field.span12{grid-column: span 12;}
