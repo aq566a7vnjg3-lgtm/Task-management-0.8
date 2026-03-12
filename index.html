@@ -2292,9 +2292,11 @@ function topDeadlines(caseObj){
     push('便乗せ期限', binjoISO, 12, 'task', 'reg_docs_submit');
   }
 
-  if(isOpen('hope_no_apply')){
+  if(caseObj.docsCollectDate) push('書類回収日', caseObj.docsCollectDate, 14, 'none', null);
+
+  if(isOpen('hope_no_apply') && caseObj.hopeNoType && caseObj.hopeNoType!=='希望番号なし'){
     const hopeISO = caseObj.derived?.hopeNoApplyDueDate || tasks.find(t=>t.key==='hope_no_apply')?.dueDate;
-    push('希望番号申請', hopeISO, 15, 'task', 'hope_no_apply');
+    push('希望番号申請期限', hopeISO, 15, 'task', 'hope_no_apply');
   }
   if(isOpen('dc_docs_submit')) push('納車センター書類', caseObj.derived?.dcDocsDueDate, 20, 'task', 'dc_docs_submit');
   if(isOpen('loan_paper_submit')) push('ローン用紙', caseObj.derived?.loanDueDate, 40, 'task', 'loan_paper_submit');
@@ -2649,7 +2651,7 @@ const $ = (id)=>document.getElementById(id);
       div.innerHTML = `
         <div>
           <div class="title">${c.orderNo||'(未入力)'} <span class="small">${clampStr(c.userName||'',10)}</span> ${c.id===activeId?'<span class="badge auto">選択中</span>':''}</div>
-          <div class="meta">登録: ${(()=>{if(c.regDone) return '-'; const r=c.derived?.regDateAuto||c.regDate||c.derived?.regPlannedDate; return r?`${fmtJP(r)}(${weekdayJP(r)})`:'-';})()}<br>納車センター書類: ${(()=>{const done=(c.tasks||[]).find(t=>t.key==='dc_docs_submit')?.done; if(done) return '-'; const d=c.derived?.dcDocsDueDate; return d?`${fmtJP(d)}(${weekdayJP(d)})`:'-';})()}<br>希望番号申請: ${(()=>{const t=(c.tasks||[]).find(x=>x.key==='hope_no_apply'); if(t?.done) return '-'; const h=(c.derived?.hopeNoApplyDueDate)||t?.dueDate; return h?`${fmtJP(h)}(${weekdayJP(h)})`:'-';})()}</div>
+          <div class="meta">登録: ${(()=>{if(c.regDone) return '-'; const r=c.derived?.regDateAuto||c.regDate||c.derived?.regPlannedDate; return r?`${fmtJP(r)}(${weekdayJP(r)})`:'-';})()}<br>納車センター書類: ${(()=>{const done=(c.tasks||[]).find(t=>t.key==='dc_docs_submit')?.done; if(done) return '-'; const d=c.derived?.dcDocsDueDate; return d?`${fmtJP(d)}(${weekdayJP(d)})`:'-';})()}<br>希望番号申請期限: ${(()=>{const t=(c.tasks||[]).find(x=>x.key==='hope_no_apply'); if(t?.done) return '-'; const h=(c.derived?.hopeNoApplyDueDate)||t?.dueDate; return h?`${fmtJP(h)}(${weekdayJP(h)})`:'-';})()}</div>
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
           ${badge}
@@ -2717,7 +2719,7 @@ const $ = (id)=>document.getElementById(id);
         return ['登録日', '便乗せ期限'];
       case '便乗せ期限':
         return ['便乗せ期限', '登録日'];
-      case '希望番号申請':
+      case '希望番号申請期限':
         return ['登録日', '希望番号種別'];
       case '納車センター書類':
         return ['納車予定'];
