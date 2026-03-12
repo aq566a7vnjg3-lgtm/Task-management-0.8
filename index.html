@@ -2972,7 +2972,8 @@ const $ = (id)=>document.getElementById(id);
     const deliveryInfo = calcEarliestDelivery(activeCase, settings);
 
     els.factoryOutRefDate.value = activeCase.factoryOutDate || '';
-    els.earliestRegDate.value = regInfo?.regISO || activeCase.derived?.earliestRegDate || '';
+    // 最短納車時の登録期限は、最短納車日を納車カレンダー(delivery_calendar.json)で参照した日付を表示する
+    els.earliestRegDate.value = deliveryInfo?.regISO || activeCase.derived?.earliestRegDate || '';
     els.earliestDeliveryDate.value = deliveryInfo?.iso || activeCase.derived?.earliestDeliveryDate || '';
   }
 
