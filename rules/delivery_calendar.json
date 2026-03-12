@@ -1,0 +1,73 @@
+{
+  "delivery_center_name": "レジェンディア納車センター",
+  "entries": [
+    {
+      "delivery_date": "2026-04-02",
+      "document_deadline": "2026-03-26"
+    },
+    {
+      "delivery_date": "2026-04-03",
+      "document_deadline": "2026-03-27"
+    },
+    {
+      "delivery_date": "2026-04-04",
+      "document_deadline": "2026-03-27"
+    },
+    {
+      "delivery_date": "2026-04-05",
+      "document_deadline": "2026-03-30"
+    },
+    {
+      "delivery_date": "2026-04-06",
+      "document_deadline": "2026-03-31"
+    },
+    {
+      "delivery_date": "2026-04-07",
+      "document_deadline": "2026-04-02"
+    },
+    {
+      "delivery_date": "2026-04-09",
+      "document_deadline": "2026-04-02"
+    },
+    {
+      "delivery_date": "2026-04-10",
+      "document_deadline": "2026-04-03"
+    },
+    {
+      "delivery_date": "2026-04-11",
+      "document_deadline": "2026-04-03"
+    },
+    {
+      "delivery_date": "2026-04-12",
+      "document_deadline": "2026-04-06"
+    },
+    {
+      "delivery_date": "2026-04-14",
+      "document_deadline": "2026-04-07"
+    },
+    {
+      "delivery_date": "2026-04-16",
+      "document_deadline": "2026-04-09"
+    },
+    {
+      "delivery_date": "2026-04-17",
+      "document_deadline": "2026-04-10"
+    },
+    {
+      "delivery_date": "2026-04-18",
+      "document_deadline": "2026-04-10"
+    },
+    {
+      "delivery_date": "2026-04-19",
+      "document_deadline": "2026-04-13"
+    },
+    {
+      "delivery_date": "2026-04-21",
+      "document_deadline": "2026-04-14"
+    },
+    {
+      "delivery_date": "2026-04-23",
+      "document_deadline": "2026-04-16"
+    }
+  ]
+}
