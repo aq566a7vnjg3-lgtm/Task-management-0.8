@@ -408,6 +408,12 @@ header nav .btn.active{outline:2px solid rgba(37,99,235,.25);}
         <button id="newCase" class="btn primary">＋新規</button>
       </div>
       <div class="row wrap">
+        <input id="storageUser" type="text" placeholder="保存ユーザー名" list="storageUserList" />
+        <datalist id="storageUserList"></datalist>
+        <button id="btnSwitchUser" class="btn">ユーザー切替</button>
+        <span class="badge auto" id="currentStorageUserBadge">保存ユーザー: 共通</span>
+      </div>
+      <div class="row wrap">
         <select id="filter">
           <option value="all">すべて</option>
           <option value="overdue">期限切れあり</option>
@@ -1458,7 +1464,7 @@ const BUILTIN_HOLIDAYS = [
  */
 
 const DB_NAME = 'contract_task_app';
-const DB_VER = 1;
+const DB_VER = 2;
 const STORE_CASES = 'cases';
 const STORE_SETTINGS = 'settings';
 
@@ -1549,6 +1555,45 @@ function clampStr(s, n){
   return s.length>n ? s.slice(0,n-1)+'…' : s;
 }
 
+
+const LS_ACTIVE_STORAGE_USER = 'cta_active_storage_user_v1';
+const LS_STORAGE_USERS = 'cta_storage_users_v1';
+
+function normalizeStorageUserKey(name){
+  const raw = String(name || '').trim();
+  return raw ? raw : 'common';
+}
+
+function getStorageUserLabel(key){
+  return key === 'common' ? '共通' : key;
+}
+
+let currentStorageUserKey = normalizeStorageUserKey(localStorage.getItem(LS_ACTIVE_STORAGE_USER) || 'common');
+
+function rememberStorageUser(key){
+  const normalized = normalizeStorageUserKey(key);
+  localStorage.setItem(LS_ACTIVE_STORAGE_USER, normalized);
+  let users = lsLoad(LS_STORAGE_USERS, []);
+  if(!Array.isArray(users)) users = [];
+  if(!users.includes(normalized)) users.push(normalized);
+  users = Array.from(new Set(users.map(normalizeStorageUserKey))).sort((a,b)=>a.localeCompare(b,'ja'));
+  lsSave(LS_STORAGE_USERS, users);
+  currentStorageUserKey = normalized;
+  return normalized;
+}
+
+function getAllRememberedStorageUsers(){
+  const users = lsLoad(LS_STORAGE_USERS, []);
+  const normalized = Array.isArray(users) ? users.map(normalizeStorageUserKey) : [];
+  if(!normalized.includes('common')) normalized.unshift('common');
+  if(!normalized.includes(currentStorageUserKey)) normalized.push(currentStorageUserKey);
+  return Array.from(new Set(normalized)).sort((a,b)=>a.localeCompare(b,'ja'));
+}
+
+function getScopedCasesLSKey(){
+  return `${LS_CASES}::${currentStorageUserKey}`;
+}
+
 // --- IndexedDB wrapper ---
 function openDB(){
   return new Promise((resolve, reject)=>{
@@ -1559,6 +1604,7 @@ function openDB(){
       if(!db.objectStoreNames.contains(STORE_CASES)){
         const s = db.createObjectStore(STORE_CASES, { keyPath: 'id' });
         s.createIndex('updatedAt', 'updatedAt');
+        s.createIndex('ownerKey', 'ownerKey', { unique: false });
       }
       if(!db.objectStoreNames.contains(STORE_SETTINGS)){
         db.createObjectStore(STORE_SETTINGS, { keyPath: 'key' });
@@ -1625,26 +1671,30 @@ async function storageSupported(){
 }
 
 async function loadAllCases(){
+  const ownerKey = currentStorageUserKey;
   const useIDB = await storageSupported();
   if(useIDB){
     const rows = await idbGetAll(STORE_CASES);
-    return rows.sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
+    return rows.filter(x => normalizeStorageUserKey(x.ownerKey || 'common') === ownerKey)
+      .sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
   }
-  const rows = lsLoad(LS_CASES, []);
+  const rows = lsLoad(getScopedCasesLSKey(), []);
   return rows.sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
 }
 
 async function saveCase(caseObj){
   const now = Date.now();
-  const obj = { ...caseObj, updatedAt: now };
+  const obj = { ...caseObj, ownerKey: currentStorageUserKey, updatedAt: now };
+  rememberStorageUser(currentStorageUserKey);
   const useIDB = await storageSupported();
   if(useIDB){
     await idbPut(STORE_CASES, obj);
   }else{
-    const all = lsLoad(LS_CASES, []);
+    const scopedKey = getScopedCasesLSKey();
+    const all = lsLoad(scopedKey, []);
     const idx = all.findIndex(x=>x.id===obj.id);
     if(idx>=0) all[idx]=obj; else all.push(obj);
-    lsSave(LS_CASES, all);
+    lsSave(scopedKey, all);
   }
   return obj;
 }
@@ -1654,8 +1704,9 @@ async function deleteCase(id){
   if(useIDB){
     await idbDelete(STORE_CASES, id);
   }else{
-    const all = lsLoad(LS_CASES, []).filter(x=>x.id!==id);
-    lsSave(LS_CASES, all);
+    const scopedKey = getScopedCasesLSKey();
+    const all = lsLoad(scopedKey, []).filter(x=>x.id!==id);
+    lsSave(scopedKey, all);
   }
 }
 
@@ -2393,7 +2444,8 @@ async function exportAll(){
   const settings = await loadSettings();
   return {
     exportedAt: new Date().toISOString(),
-    version: '1.0',
+    version: '1.1',
+    storageUser: currentStorageUserKey,
     cases,
     settings,
   };
@@ -2404,7 +2456,7 @@ async function importAll(payload){
   if(payload.settings) await saveSettings(payload.settings);
   if(Array.isArray(payload.cases)){
     for(const c of payload.cases){
-      await saveCase(c);
+      await saveCase({ ...c, ownerKey: currentStorageUserKey });
     }
   }
 }
@@ -2437,6 +2489,10 @@ const $ = (id)=>document.getElementById(id);
     search: $('search'),
     filter: $('filter'),
     sort: $('sort'),
+    storageUser: $('storageUser'),
+    storageUserList: $('storageUserList'),
+    btnSwitchUser: $('btnSwitchUser'),
+    currentStorageUserBadge: $('currentStorageUserBadge'),
     newCase: $('newCase'),
     caseList: $('caseList'),
     listSummary: $('listSummary'),
@@ -2553,6 +2609,40 @@ const $ = (id)=>document.getElementById(id);
   settings = await refreshHolidayDataFromFiles(settings, { persist:true });
 
   els.storageBadge.textContent = (await storageSupported()) ? '保存先: IndexedDB' : '保存先: localStorage（簡易）';
+
+  function renderStorageUserUi(){
+    if(els.storageUser) els.storageUser.value = getStorageUserLabel(currentStorageUserKey);
+    if(els.currentStorageUserBadge) els.currentStorageUserBadge.textContent = `保存ユーザー: ${getStorageUserLabel(currentStorageUserKey)}`;
+    if(els.storageUserList){
+      els.storageUserList.innerHTML = getAllRememberedStorageUsers().map(key=>`<option value="${escapeHtml(getStorageUserLabel(key))}"></option>`).join('');
+    }
+  }
+
+  async function switchStorageUser(nextName){
+    const nextKey = rememberStorageUser(nextName);
+    if(activeCase){
+      try{
+        syncActiveCaseFromForm();
+        await saveCase(activeCase);
+      }catch(err){
+        console.error('switchStorageUser autosave failed', err);
+      }
+    }
+    cases = await loadAllCases();
+    activeId = cases[0]?.id || null;
+    activeCase = activeId ? (cases.find(c=>c.id===activeId) || null) : null;
+    renderStorageUserUi();
+    fillForm();
+    renderList();
+    renderKpis();
+    renderReplaceFlag();
+    renderTopCards();
+    renderEarliestDeliveryPanel();
+    updateGenerateButtons();
+    showSaveStatus(`保存ユーザーを「${getStorageUserLabel(nextKey)}」に切り替えました`);
+  }
+
+  renderStorageUserUi();
 
   // populate select
   HOPE_NO_TYPES.forEach(v=>{
@@ -3403,7 +3493,7 @@ const $ = (id)=>document.getElementById(id);
       createdAt: Date.now(),
       updatedAt: Date.now(),
       orderNo: '',
-      userName: '',
+      userName: currentStorageUserKey === 'common' ? '' : getStorageUserLabel(currentStorageUserKey),
       tcCode: '',
       tel: '',
       orderDate: todayStr(),
@@ -3532,6 +3622,15 @@ const $ = (id)=>document.getElementById(id);
   els.search.oninput = renderList;
   els.filter.onchange = renderList;
   els.sort.onchange = renderList;
+  if(els.btnSwitchUser) els.btnSwitchUser.onclick = ()=>switchStorageUser(els.storageUser?.value || '');
+  if(els.storageUser){
+    els.storageUser.addEventListener('keydown', (ev)=>{
+      if(ev.key === 'Enter'){
+        ev.preventDefault();
+        switchStorageUser(els.storageUser.value || '');
+      }
+    });
+  }
 
   // buttons
   els.btnGenerate.onclick = ()=>doGenerate(true);
